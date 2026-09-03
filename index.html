@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Schneckocide - 16-Bit Tower</title>
+  <link rel="stylesheet" href="css/style.css">
+  <!-- Phaser liegt lokal, damit das Spiel offline laeuft. Alternative per CDN:
+       <script src="https://cdn.jsdelivr.net/npm/phaser@3.80.1/dist/phaser.min.js"></script> -->
+  <script src="vendor/phaser.min.js"></script>
+</head>
+<body>
+
+  <div id="game-container"></div>
+
+  <p class="hint">
+    Pfeiltasten laufen &middot; Hoch/Runter klettern &middot; Leertaste springen &middot;
+    <b>J</b> Schwert &middot; <b>K</b> schiessen &middot; <b>R</b> Neustart
+  </p>
+
+  <!--
+    Ladereihenfolge ist wichtig: Daten und Konfiguration vor den Klassen,
+    Klassen vor main.js. Bewusst klassische script-Tags statt ES-Module -
+    so laeuft das Spiel auch per Doppelklick auf index.html, ohne Webserver.
+  -->
+  <script src="js/config.js"></script>
+  <script src="js/data/enemyTypes.js"></script>
+  <script src="js/data/level.js"></script>
+  <script src="js/gfx/textures.js"></script>
+  <script src="js/gfx/Backdrop.js"></script>
+  <script src="js/gfx/NeonSign.js"></script>
+  <script src="js/entities/Bullet.js"></script>
+  <script src="js/entities/Player.js"></script>
+  <script src="js/entities/Enemy.js"></script>
+  <script src="js/scenes/BootScene.js"></script>
+  <script src="js/scenes/TitleScene.js"></script>
+  <script src="js/scenes/GameScene.js"></script>
+  <script src="js/scenes/UIScene.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,38 @@
+html, body {
+  margin: 0;
+  padding: 0;
+  background: #0a0912;
+  color: #d8dde8;
+  font-family: monospace;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+/* Der Container legt sich um das Canvas (keine eigene Groesse) und wird vom
+   zentrierten Body mittig gesetzt. Wichtig: die Zentrierung passiert NUR hier.
+   Phasers autoCenter ist abgeschaltet - sonst kaeme dessen Rand oben drauf und
+   das Spiel saesse sichtbar aus der Mitte verschoben. */
+#game-container {
+  line-height: 0;
+}
+
+/* Verhindert, dass der Browser die hochskalierten Pixel weichzeichnet. */
+#game-container canvas {
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  border: 3px solid #33334d;
+  box-shadow: 0 0 40px rgba(0, 0, 0, 0.9);
+}
+
+.hint {
+  margin: 0;
+  font-size: 12px;
+  color: #6f7889;
+  text-align: center;
+}
+
+.hint b { color: #8ce8d0; }

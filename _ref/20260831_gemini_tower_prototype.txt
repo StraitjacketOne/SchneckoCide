@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>16-Bit Tower Climber - 6 Etagen Prototyp</title>
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3/dist/phaser.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #0f0f1b;
+            color: #ffffff;
+            font-family: monospace;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+        #game-container {
+            border: 4px solid #33334d;
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.9);
+        }
+        .instructions {
+            margin-top: 12px;
+            font-size: 14px;
+            color: #aaa;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="game-container"></div>
+    <div class="instructions">
+        <b>Steuerung:</b> Pfeiltasten (Links/Rechts = Laufen, Oben/Unten = Treppe klettern, LEER = Springen)
+    </div>
+
+    <script>
+        const config = {
+            type: Phaser.AUTO,
+            width: 480,
+            height: 640,
+            parent: 'game-container',
+            pixelArt: true,
+            physics: {
+                default: 'arcade',
+                arcade: {
+                    gravity: { y: 600 },
+                    debug: false
+                }
+            },
+            scene: {
+                preload: preload,
+                create: create,
+                update: update
+            }
+        };
+
+        const game = new Phaser.Game(config);
+
+        let player;
+        let platforms;
+        let ladders;
+        let goal;
+        let cursors;
+        let spaceKey;
+        let isClimbing = false;
+        let currentFloorText;
+
+        function preload() {
+            // Texturen per Code (Graphics) erzeugen für schnelles Prototyping
+            createTextureGraphics(this);
+        }
+
+        function createTextureGraphics(scene) {
+            // 1. Spieler-Sprite (16x24 Pixel)
+            let g = scene.make.graphics({x: 0, y: 0, add: false});
+            g.fillStyle(0x3498db);
+            g.fillRect(2, 4, 12, 16); // Körper
+            g.fillStyle(0xf1c40f);
+            g.fillRect(4, 0, 8, 6);   // Kopf/Helm
+            g.generateTexture('player_tex', 16, 24);
+            g.clear();
+
+            // 2. Plattform (Boden)
+            g.fillStyle(0x7f8c8d);
+            g.fillRect(0, 0, 32, 12);
+            g.fillStyle(0x95a5a6);
+            g.fillRect(0, 0, 32, 2);
+            g.generateTexture('platform_tex', 32, 12);
+            g.clear();
+
+            // 3. Treppe / Leiter (Donkey Kong Stil)
+            g.fillStyle(0xe67e22);
+            g.fillRect(2, 0, 3, 32);  // Linker Holm
+            g.fillRect(11, 0, 3, 32); // Rechter Holm
+            g.fillRect(2, 6, 12, 2);  // Sprossen
+            g.fillRect(2, 14, 12, 2);
+            g.fillRect(2, 22, 12, 2);
+            g.fillRect(2, 30, 12, 2);
+            g.generateTexture('ladder_tex', 16, 32);
+            g.clear();
+
+            // 4. Ziel auf Etage 6
+            g.fillStyle(0xf1c40f);
+            g.fillRect(4, 0, 16, 24);
+            g.fillStyle(0xe74c3c);
+            g.fillRect(8, 6, 8, 12);
+            g.generateTexture('goal_tex', 24, 24);
+        }
+
+        function create() {
+            // Hintergrund-Raster für Retro-Look
+            this.add.grid(240, 320, 480, 640, 32, 32, 0x161625, 1, 0x1f1f35);
+
+            platforms = this.physics.add.staticGroup();
+            ladders = this.physics.add.staticGroup();
+
+            // 6 Etagen bauen (Y-Positionen von unten nach oben)
+            const floorY = [580, 480, 380, 280, 180, 80];
+            
+            // Etagen-Böden & Treppen platzieren
+            for (let i = 0; i < 6; i++) {
+                const y = floorY[i];
+
+                // Boden durchgehend bauen (15 Blöcke à 32px = 480px)
+                for (let x = 16; x < 480; x += 32) {
+                    // Auf Etagen 1-5 kleine Lücken für die Treppen lassen
+                    const isLadderGap = (i % 2 === 0 && x > 380 && x < 440) || (i % 2 !== 0 && x > 40 && x < 100);
+                    if (!isLadderGap || i === 5) {
+                        platforms.create(x, y, 'platform_tex');
+                    }
+                }
+
+                // Treppen verbinden die Etagen (abwechselnd rechts / links)
+                if (i < 5) {
+                    const ladderX = (i % 2 === 0) ? 410 : 70;
+                    const nextY = floorY[i + 1];
+                    const height = y - nextY;
+                    
+                    for (let ly = y - 16; ly > nextY; ly -= 32) {
+                        ladders.create(ladderX, ly, 'ladder_tex');
+                    }
+                }
+
+                // Etagen-Beschriftung an der Wand
+                this.add.text(12, y - 28, `ETAGE ${i + 1}`, {
+                    fontSize: '10px',
+                    fill: '#555577',
+                    fontStyle: 'bold'
+                });
+            }
+
+            // Ziel auf Etage 6 platzieren
+            goal = this.physics.add.sprite(240, floorY[5] - 24, 'goal_tex');
+            goal.body.setAllowGravity(false);
+
+            // Spieler erstellen auf Etage 1
+            player = this.physics.add.sprite(60, floorY[0] - 30, 'player_tex');
+            player.setCollideWorldBounds(true);
+
+            // Kollisionen festlegen
+            this.physics.add.collider(player, platforms);
+
+            // Tasten-Eingaben
+            cursors = this.input.keyboard.createCursorKeys();
+            spaceKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
+
+            // UI Anzeige
+            currentFloorText = this.add.text(16, 16, 'Etage: 1 / 6', {
+                fontSize: '14px',
+                fill: '#00ffcc',
+                backgroundColor: '#00000088',
+                padding: { x: 8, y: 4 }
+            });
+
+            // Sieg-Bedingung Overlap
+            this.physics.add.overlap(player, goal, reachGoal, null, this);
+        }
+
+        function update() {
+            // 1. Treppen-Kletter-Logik (Donkey Kong Mechanik)
+            let touchingLadder = false;
+            
+            this.physics.overlap(player, ladders, () => {
+                touchingLadder = true;
+            });
+
+            if (touchingLadder && (cursors.up.isDown || cursors.down.isDown)) {
+                isClimbing = true;
+            }
+
+            if (!touchingLadder) {
+                isClimbing = false;
+            }
+
+            // Bewegungsverhalten basierend auf Status (Klettern vs. Laufen)
+            if (isClimbing) {
+                player.body.setAllowGravity(false);
+                player.setVelocityX(0);
+
+                if (cursors.up.isDown) {
+                    player.setVelocityY(-120);
+                } else if (cursors.down.isDown) {
+                    player.setVelocityY(120);
+                } else {
+                    player.setVelocityY(0);
+                }
+
+                // Vom Klettern zur Seite abspringen/steigen
+                if (cursors.left.isDown) {
+                    player.setVelocityX(-100);
+                } else if (cursors.right.isDown) {
+                    player.setVelocityX(100);
+                }
+            } else {
+                player.body.setAllowGravity(true);
+
+                // Horizontale Bewegung
+                if (cursors.left.isDown) {
+                    player.setVelocityX(-140);
+                } else if (cursors.right.isDown) {
+                    player.setVelocityX(140);
+                } else {
+                    player.setVelocityX(0);
+                }
+
+                // Springen (nur wenn am Boden)
+                if ((cursors.up.isDown || spaceKey.isDown) && player.body.touching.down) {
+                    player.setVelocityY(-260);
+                }
+            }
+
+            // Aktuelle Etage berechnen (680px Gesamthöhe durch 6 teilen)
+            const floor = Math.min(6, Math.max(1, 6 - Math.floor(player.y / 100)));
+            currentFloorText.setText(`Etage: ${floor} / 6`);
+        }
+
+        function reachGoal(player, goal) {
+            this.physics.pause();
+            player.setTint(0x00ff00);
+            
+            this.add.text(240, 320, 'ZIEL ERREICHT!', {
+                fontSize: '24px',
+                fill: '#00ff00',
+                backgroundColor: '#000000cc',
+                padding: { x: 16, y: 8 }
+            }).setOrigin(0.5);
+        }
+    </script>
+</body>
+</html>
+```eof
+
+### Was dieser Prototyp bereits beinhaltet:
+1. **6-Etagen-Struktur:** Das Spielfeld ist vertikal aufgeteilt mit 6 Plattformen.
+2. **Donkey-Kong-Klettermechanik:** 
+   * Die Treppen/Leitern sind abwechselnd links und rechts platziert.
+   * Sobald die Figur auf eine Treppe trifft und `Nach Oben` oder `Nach Unten` gedrückt wird, wird die Schwerkraft pausiert und man kann frei vertikal klettern.
+3. **Erkennungs-System:** Eine UI zeigt dir dynamisch an, auf welcher Etage du dich gerade befindest.
+4. **Ziel-Mechanik:** Auf der 6. Etage steht ein goldenes Objekt – wird es berührt, friert das Spiel ab und zeigt "ZIEL ERREICHT".
+
+Speichere den Code einfach als `index.html` ab und öffne die Datei im Browser (oder starte sie über Live Server in VS Code). 
+
+Als Nächstes können wir darauf aufbauend den Schwertangriff oder einfache patrouillierende Gegner einbauen!
