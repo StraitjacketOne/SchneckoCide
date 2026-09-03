@@ -41,10 +41,11 @@ vendor/phaser.min.js    Phaser 3.80.1, unveraendert
 js/
   config.js             ALLE Tuning-Werte: Tempo, Sprunghoehe, Schaden, Etagen
   data/enemyTypes.js    die zehn Gegnertypen (Werte + Farben)
-  data/level.js         wer auf welcher Etage steht
+  data/levels.js        die Level: Etagen, Leitern, Optik, Gegner, Portale
   gfx/textures.js       Sprites als Pixel-Maps (ein Zeichen = ein Pixel)
-  entities/             Player, Enemy, Bullet
   scenes/               Boot, Title, Game, UI
+  entities/             Player, Enemy, Bullet, Portal
+tools/check_levels.js   prueft die Leveldaten (node tools/check_levels.js)
 _ref/                   die urspruenglichen Entwuerfe aus dem Gemini-Chat
 ```
 
@@ -81,6 +82,16 @@ scheinbar im Freien.
 
 **Balancing.** Alles in `js/config.js`. Zu schwer? `PLAYER.HP` hoch,
 `SWORD_CD` runter. Zu traege? `PLAYER.SPEED` hoch.
+
+**Ein neues Level.** Einen Eintrag in `js/data/levels.js` ergaenzen und ein
+Portal aus einem bestehenden Level dorthin zeigen lassen. Ein Level bringt sein
+eigenes Etagenraster, eigene Leitern, eigene Farben und einen eigenen
+Schriftzug mit - was es nicht angibt, faellt auf die Standardwerte in
+`config.js` zurueck. Portale nehmen Leben und Punkte mit hinueber.
+
+Danach `node tools/check_levels.js` laufen lassen: das prueft Gegner auf
+nicht existierenden Etagen, Portale ins Leere, Leitern ohne Anschluss und
+Figuren, die durchs Dach ragen.
 
 **Einen elften Gegner.** In `data/enemyTypes.js` einen Eintrag ergaenzen
 (Farbe, HP, Tempo, `behavior`) und in `data/level.js` platzieren. Sprite und

@@ -6,12 +6,27 @@ class GameScene extends Phaser.Scene {
 
   constructor() { super('game'); }
 
+  /*
+   * Beim Levelwechsel ruft scene.restart(daten) diese Methode auf. Darueber
+   * kommen Ziel-Level, Einstiegspunkt und der mitgenommene Spielstand herein.
+   */
+  init(data) {
+    this.carry = data || {};
+    this.levelIndex = this.carry.level !== undefined ? this.carry.level : 0;
+    this.level = LEVELS[this.levelIndex];
+  }
+
   create() {
+    // Etagenraster, Leitern und Farben dieses Levels in CFG uebernehmen.
+    // Muss VOR allem anderen laufen - alles Weitere liest aus CFG.
+    applyLevel(this.level);
+
     // Gelaufen wird nur INNERHALB der Aussenmauern.
     this.physics.world.setBounds(innerLeft(), 0, innerRight() - innerLeft(), CFG.H);
-    this.score = 0;
+    this.score = this.carry.score || 0;
     this.gameOver = false;
     this.won = false;
+    this.switching = false;
     this.swordHits = new Set();      // pro Hieb wird jeder Gegner nur einmal getroffen
 
     Backdrop.sky(this);
@@ -29,15 +44,19 @@ class GameScene extends Phaser.Scene {
       maxSize: 60
     });
 
-    // Spieler
-    const ps = LEVEL.playerStart;
+    // Spieler - beim Ankommen durch ein Portal an dessen Ausgang, sonst am
+    // regulaeren Startpunkt des Levels.
+    const ps = (this.carry.spawnFloor !== undefined)
+      ? { floor: this.carry.spawnFloor, x: this.carry.spawnX }
+      : this.level.playerStart;
     this.player = new Player(this, ps.x, floorTop(ps.floor) - 20);
     this.player.setDepth(5);
     this.player.snapFeetTo(floorTop(ps.floor));
+    if (this.carry.hp) this.player.hp = this.carry.hp;
 
     // Gegner
     this.enemies = this.add.group();
-    LEVEL.enemies.forEach(spawn => {
+    this.level.enemies.forEach(spawn => {
       const e = new Enemy(this, spawn);
       e.setDepth(4);
       this.enemies.add(e);
@@ -50,6 +69,13 @@ class GameScene extends Phaser.Scene {
     this.physics.add.overlap(this.bullets, this.enemies, this.onBulletHitsEnemy, null, this);
     this.physics.add.overlap(this.bullets, this.player, this.onBulletHitsPlayer, null, this);
     this.physics.add.collider(this.bullets, this.floors, b => b.kill());
+
+    // Portale
+    Portal.createAnims(this);
+    this.portals = (this.level.portals || []).map(def => new Portal(this, def));
+    // Kurze Sperre: wer gerade aus einem Portal kommt, soll nicht sofort
+    // wieder hineinlaufen.
+    this.portalReady = this.time.now + 700;
 
     // Fassade zuletzt: sie deckt die Bodenkacheln an den Aussenkanten ab.
     Backdrop.facade(this);
@@ -67,7 +93,7 @@ class GameScene extends Phaser.Scene {
     this.floors = this.physics.add.staticGroup();
     CFG.FLOOR_TOPS.forEach(top => {
       for (let x = CFG.BUILDING.LEFT; x < CFG.BUILDING.RIGHT; x += 16) {
-        this.floors.create(x + 8, top + 4, 'tile');
+        this.floors.create(x + 8, top + 4, this.level.tileKey || 'tile');
       }
     });
   }
@@ -201,7 +227,7 @@ class GameScene extends Phaser.Scene {
 
   onEnemyKilled(enemy) {
     this.score += enemy.def.score;
-    if (enemy.typeId === 'boss') this.win();
+    if (enemy.typeId === 'boss' && this.level.bossEndsGame) this.win();
   }
 
   onPlayerDead() {
@@ -223,7 +249,7 @@ class GameScene extends Phaser.Scene {
   update(time, delta) {
     if (Phaser.Input.Keyboard.JustDown(this.keys.restart)) {
       this.scene.stop('ui');
-      this.scene.restart();
+      this.scene.restart({ level: 0 });
       return;
     }
     // Die Reklame flackert auch nach Spielende weiter.
@@ -243,6 +269,45 @@ class GameScene extends Phaser.Scene {
     this.enemies.getChildren().forEach(e => e.update(time, delta, this.player, playerFloor));
 
     this.resolveSword();
+    this.checkPortals(time);
+  }
+
+  /** Beruehrt der Spieler ein Portal? Dann Level wechseln. */
+  checkPortals(time) {
+    if (this.switching || time < this.portalReady || !this.player.alive) return;
+
+    const pb = this.player.body;
+    const pr = new Phaser.Geom.Rectangle(pb.x, pb.y, pb.width, pb.height);
+    for (const portal of this.portals) {
+      if (Phaser.Geom.Intersects.RectangleToRectangle(pr, portal.rect())) {
+        this.enterPortal(portal);
+        return;
+      }
+    }
+  }
+
+  /**
+   * Levelwechsel. Leben und Punkte werden mitgenommen, der Rest der Szene
+   * komplett neu aufgebaut - damit bleibt kein Zustand des alten Levels haengen.
+   */
+  enterPortal(portal) {
+    this.switching = true;
+    const d = portal.def;
+
+    this.player.setVelocity(0, 0);
+    this.cameras.main.flash(120, 160, 90, 255);
+    this.cameras.main.fadeOut(320, 0, 0, 0);
+
+    this.cameras.main.once('camerafadeoutcomplete', () => {
+      this.scene.stop('ui');
+      this.scene.restart({
+        level: d.to,
+        spawnFloor: d.toFloor,
+        spawnX: d.toX,
+        hp: this.player.hp,
+        score: this.score
+      });
+    });
   }
 
   /** Schwert-Trefferzone gegen Gegner und gegnerische Projektile pruefen. */

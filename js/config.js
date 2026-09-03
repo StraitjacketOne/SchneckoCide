@@ -106,3 +106,34 @@ function floorIndexOf(footY) {
   }
   return best;
 }
+
+/* -------------------------------------------------------- Level-Umschaltung */
+
+/*
+ * Die Standardwerte werden EINMAL kopiert, bevor ein Level sie ueberschreibt.
+ * Ohne diese Kopie wuerden sich die Themes beim Hin- und Herwechseln
+ * uebereinanderschichten und das Hochhaus haette irgendwann Serverkeller-Farben.
+ */
+const CFG_DEFAULTS = JSON.parse(JSON.stringify({
+  COLORS: CFG.COLORS,
+  BUILDING: CFG.BUILDING,
+  SIGN: CFG.SIGN,
+  FLOOR_TOPS: CFG.FLOOR_TOPS,
+  LADDERS: CFG.LADDERS
+}));
+
+/**
+ * Uebernimmt Etagenraster, Leitern und Optik eines Levels in CFG.
+ * Alles, was das Level nicht angibt, faellt auf den Standardwert zurueck.
+ * Muss vor dem Aufbau der Szene laufen - danach lesen alle Zeichenroutinen
+ * einfach wie gewohnt aus CFG.
+ */
+function applyLevel(level) {
+  CFG.FLOOR_TOPS = level.floors  || CFG_DEFAULTS.FLOOR_TOPS.slice();
+  CFG.LADDERS    = level.ladders || CFG_DEFAULTS.LADDERS.slice();
+
+  const t = level.theme || {};
+  CFG.COLORS   = Object.assign({}, CFG_DEFAULTS.COLORS,   t.COLORS   || {});
+  CFG.BUILDING = Object.assign({}, CFG_DEFAULTS.BUILDING, t.BUILDING || {});
+  CFG.SIGN     = Object.assign({}, CFG_DEFAULTS.SIGN,     t.SIGN     || {});
+}

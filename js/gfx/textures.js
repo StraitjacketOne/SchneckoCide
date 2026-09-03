@@ -256,11 +256,65 @@ const BLADE_FRAMES = [[
   '................'
 ]];
 
+
+/* Portal 16x26 - drei Frames, damit der Wirbel laeuft */
+const PORTAL_PAL = { o: 0x1b0a2e, r: 0x6a2ec9, m: 0xa96bff, h: 0xe4ccff, w: 0xffffff };
+const PORTAL_FRAMES = [
+  ['....oooooo....',
+   '..oorrrrrroo..',
+   '.orrmmmmmmrro.',
+   'orrmmhhhhmmrro',
+   'orrmhhwwhhmrro',
+   'orrmhwwwwhmrro',
+   'orrmhwwwwhmrro',
+   'orrmhhwwhhmrro',
+   'orrmmhhhhmmrro',
+   'orrrmmmmmmrrro',
+   'orrrrmmmmrrrro',
+   '.orrrrmmrrrro.',
+   '..oorrrrrroo..',
+   '....oooooo....'],
+  ['....oooooo....',
+   '..oorrrrrroo..',
+   '.orrmmmmmmrro.',
+   'orrmmmhhmmmrro',
+   'orrmhhwwhhmrro',
+   'orrhwwwwwwhrro',
+   'orrhwwwwwwhrro',
+   'orrmhhwwhhmrro',
+   'orrmmmhhmmmrro',
+   'orrrmmmmmmrrro',
+   'orrrrmmmmrrrro',
+   '.orrrrmmrrrro.',
+   '..oorrrrrroo..',
+   '....oooooo....'],
+  ['....oooooo....',
+   '..oorrrrrroo..',
+   '.orrmmmmmmrro.',
+   'orrmhhhhhhmrro',
+   'orrhhwwwwhhrro',
+   'orrhwwwwwwhrro',
+   'orrhwwwwwwhrro',
+   'orrhhwwwwhhrro',
+   'orrmhhhhhhmrro',
+   'orrrmmmmmmrrro',
+   'orrrrmmmmrrrro',
+   '.orrrrmmrrrro.',
+   '..oorrrrrroo..',
+   '....oooooo....']
+];
+
 /** Erzeugt alle Texturen. Wird einmal in BootScene.preload aufgerufen. */
 function buildAllTextures(scene) {
   buildSheet(scene, 'hero', 12, 18, HERO_PAL, HERO_FRAMES);
   buildSheet(scene, 'tile', 16, 8, TILE_PAL, TILE_FRAMES);
   buildSheet(scene, 'ladder', 12, 8, LADDER_PAL, LADDER_FRAMES);
+  buildSheet(scene, 'portal', 14, 14, PORTAL_PAL, PORTAL_FRAMES);
+
+  // Zweites Bodenset fuer den Serverkeller - gleiche Form, kuehle Palette.
+  buildSheet(scene, 'tile_cyber', 16, 8,
+    { M: 0x3f9c86, m: 0x24705f, d: 0x14453c, D: 0x0d2f2a, k: 0x061a17 },
+    TILE_FRAMES);
   buildSheet(scene, 'blade', 16, 12, BLADE_PAL, BLADE_FRAMES);
 
   // Lebensanzeige: Frame 0 = voll, Frame 1 = leer

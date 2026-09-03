@@ -27,6 +27,7 @@ class UIScene extends Phaser.Scene {
       .setOrigin(0, 0.5).setVisible(false);
 
     this.overlay = null;
+    this.showLevelName();
 
     this.onGameOver = () => this.showOverlay('GAME OVER', '#ff6b6b');
     this.onWin = () => this.showOverlay('GEBAEUDE GESICHERT', '#7dffb0');
@@ -47,8 +48,10 @@ class UIScene extends Phaser.Scene {
       this.hearts[i].setFrame(i < p.hp ? 0 : 1);
     }
 
+    // Etagenzahl aus dem aktuellen Level, nicht fest verdrahtet - der
+    // Serverkeller hat vier Ebenen, das Hochhaus sechs.
     const floor = (this.gs.playerFloor || 0) + 1;
-    this.floorText.setText('ETAGE ' + floor + '/6');
+    this.floorText.setText('ETAGE ' + floor + '/' + CFG.FLOOR_TOPS.length);
     this.scoreText.setText(String(this.gs.score).padStart(6, '0'));
 
     const boss = this.gs.enemies.getChildren().find(e => e.typeId === 'boss' && e.alive);
@@ -59,6 +62,19 @@ class UIScene extends Phaser.Scene {
       this.bossBarBg.setVisible(false);
       this.bossBar.setVisible(false);
     }
+  }
+
+  /** Name des Levels kurz einblenden, damit der Wechsel spuerbar wird. */
+  showLevelName() {
+    const t = this.add.text(CFG.W / 2, CFG.H / 2 - 30, this.gs.level.name, {
+      fontFamily: 'monospace', fontSize: '12px', color: '#ffffff',
+      backgroundColor: '#000000aa', padding: { x: 6, y: 3 }
+    }).setOrigin(0.5).setDepth(40);
+
+    this.tweens.add({
+      targets: t, alpha: 0, delay: 1300, duration: 700,
+      onComplete: () => t.destroy()
+    });
   }
 
   showOverlay(text, color) {
