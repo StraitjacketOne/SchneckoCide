@@ -1,7 +1,10 @@
 # Schneckocide
 
-2D-Jump-and-Run im 16-Bit-Stil. Sechs Etagen, Leitern nach Donkey-Kong-Prinzip,
-Schwert und Schusswaffe, zehn Gegnertypen, Boss auf Etage 6.
+2D-Jump-and-Run im 16-Bit-Stil. Leitern nach Donkey-Kong-Prinzip, Schwert und
+Schusswaffe, zehn Gegnertypen, Boss ganz oben.
+
+Zwei Welten, verbunden durch ein Portal: das Hochhaus KINDE$WOOLWORTH INC.
+(sechs Etagen) und der Serverkeller NODE 7 (vier hohe Ebenen).
 
 ## Starten
 
@@ -94,7 +97,7 @@ nicht existierenden Etagen, Portale ins Leere, Leitern ohne Anschluss und
 Figuren, die durchs Dach ragen.
 
 **Einen elften Gegner.** In `data/enemyTypes.js` einen Eintrag ergaenzen
-(Farbe, HP, Tempo, `behavior`) und in `data/level.js` platzieren. Sprite und
+(Farbe, HP, Tempo, `behavior`) und in `data/levels.js` bei einem Level platzieren. Sprite und
 Animation entstehen automatisch. Ein neues Verhalten kommt als weiterer `case`
 in `Enemy.behave()` dazu.
 
