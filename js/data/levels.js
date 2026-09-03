@@ -43,7 +43,7 @@ const LEVELS = [
 
     // Der Lastenaufzug im dritten Stock - fuehrt in den Serverkeller.
     portals: [
-      { floor: 2, x: 150, to: 1, toFloor: 0, toX: 40 }
+      { floor: 2, x: 150, to: 1, toFloor: 0, toX: 40, story: 'enter_datacenter' }
     ],
 
     enemies: [
@@ -105,14 +105,15 @@ const LEVELS = [
 
     // Rueckweg ganz oben - man muss sich erst hochkaempfen.
     portals: [
-      { floor: 3, x: 250, to: 0, toFloor: 2, toX: 176 }
+      { floor: 3, x: 250, to: 0, toFloor: 2, toX: 176, story: 'leave_datacenter' }
     ],
 
     enemies: [
       { type: 'flyer',   floor: 0, x: 200, from: 80,  to: 300 },
-      { type: 'runner',  floor: 0, x: 150, from: 90,  to: 290 },
+      { type: 'runner',  floor: 0, x: 150, from: 90,  to: 290, skipIf: 'leise' },
+      { type: 'grunt',   floor: 0, x: 240, from: 120, to: 300, onlyIf: 'laut' },
 
-      { type: 'turret',  floor: 1, x: 140 },
+      { type: 'turret',  floor: 1, x: 140, skipIf: 'leise' },
       { type: 'hopper',  floor: 1, x: 220, from: 110, to: 300 },
       { type: 'flyer',   floor: 1, x: 100, from: 30,  to: 240 },
 

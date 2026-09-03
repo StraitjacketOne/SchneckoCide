@@ -14,6 +14,8 @@ class GameScene extends Phaser.Scene {
     this.carry = data || {};
     this.levelIndex = this.carry.level !== undefined ? this.carry.level : 0;
     this.level = LEVELS[this.levelIndex];
+    // Entscheidungen aus Zwischensequenzen - ueberdauern den Levelwechsel.
+    this.flags = this.carry.flags || {};
   }
 
   create() {
@@ -56,7 +58,12 @@ class GameScene extends Phaser.Scene {
 
     // Gegner
     this.enemies = this.add.group();
-    this.level.enemies.forEach(spawn => {
+    // Gegner koennen an Entscheidungen haengen: `onlyIf` erscheint nur mit
+    // gesetztem Flag, `skipIf` verschwindet, wenn das Flag gesetzt ist.
+    this.level.enemies.filter(spawn =>
+      (!spawn.onlyIf || this.flags[spawn.onlyIf]) &&
+      (!spawn.skipIf || !this.flags[spawn.skipIf])
+    ).forEach(spawn => {
       const e = new Enemy(this, spawn);
       e.setDepth(4);
       this.enemies.add(e);
@@ -298,15 +305,24 @@ class GameScene extends Phaser.Scene {
     this.cameras.main.flash(120, 160, 90, 255);
     this.cameras.main.fadeOut(320, 0, 0, 0);
 
+    const daten = {
+      level: d.to,
+      spawnFloor: d.toFloor,
+      spawnX: d.toX,
+      hp: this.player.hp,
+      score: this.score,
+      flags: this.flags
+    };
+
     this.cameras.main.once('camerafadeoutcomplete', () => {
       this.scene.stop('ui');
-      this.scene.restart({
-        level: d.to,
-        spawnFloor: d.toFloor,
-        spawnX: d.toX,
-        hp: this.player.hp,
-        score: this.score
-      });
+      // Mit Geschichte: erst die Zwischensequenz, die uebergibt danach an das
+      // Spiel weiter (und darf den Ankunftspunkt noch veraendern).
+      if (d.story && STORY[d.story]) {
+        this.scene.start('cutscene', { story: d.story, then: daten });
+      } else {
+        this.scene.restart(daten);
+      }
     });
   }
 

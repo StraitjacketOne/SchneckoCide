@@ -45,7 +45,7 @@ const gameConfig = {
       debug: false         // auf true setzen, um alle Trefferboxen zu sehen
     }
   },
-  scene: [BootScene, TitleScene, GameScene, UIScene]
+  scene: [BootScene, TitleScene, CutsceneScene, GameScene, UIScene]
 };
 
 const game = new Phaser.Game(gameConfig);

@@ -19,7 +19,10 @@ new Function('g', lade('js/config.js') + '\n;g.CFG=CFG;g.innerLeft=innerLeft;g.i
 new Function('g', lade('js/data/levels.js') + '\n;g.LEVELS=LEVELS;')(ctx);
 new Function('g', lade('js/data/enemyTypes.js') + '\n;g.ENEMY_TYPES=ENEMY_TYPES;')(ctx);
 
-const { CFG, LEVELS, ENEMY_TYPES, innerLeft, innerRight } = ctx;
+new Function('g', lade('js/data/story.js') + '\n;g.STORY=STORY;')(ctx);
+new Function('g', lade('js/gfx/PanelArt.js') + '\n;g.PanelArt=PanelArt;')(ctx);
+
+const { CFG, LEVELS, ENEMY_TYPES, STORY, PanelArt, innerLeft, innerRight } = ctx;
 
 const fehler = [];
 const warnung = [];
@@ -72,6 +75,11 @@ LEVELS.forEach((lv, li) => {
     if (p.toX < links || p.toX > rechts) {
       fehler.push(`${etiketten}: Portal setzt den Spieler auf x=${p.toX} - das liegt in der Mauer`);
     }
+    // Zwischensequenz vorhanden?
+    if (p.story && !STORY[p.story]) {
+      fehler.push(`${etiketten}: Portal verweist auf Sequenz "${p.story}" - gibt es nicht in story.js`);
+    }
+
     // Landet man direkt auf einem Portal des Ziellevels?
     (ziel.portals || []).forEach(zp => {
       if (zp.floor === p.toFloor && Math.abs(zp.x - p.toX) < 14) {
@@ -88,7 +96,36 @@ LEVELS.forEach((lv, li) => {
   }
 });
 
-console.log(`${LEVELS.length} Level geprueft.\n`);
+// --- Zwischensequenzen
+Object.keys(STORY).forEach(id => {
+  const seq = STORY[id];
+  if (!seq.panels || !seq.panels.length) {
+    fehler.push(`Sequenz "${id}": keine Panels`);
+    return;
+  }
+  seq.panels.forEach((panel, pi) => {
+    if (typeof PanelArt[panel.art] !== 'function') {
+      fehler.push(`Sequenz "${id}" Panel ${pi + 1}: Motiv "${panel.art}" fehlt in PanelArt.js`);
+    }
+    if (!panel.text) warnung.push(`Sequenz "${id}" Panel ${pi + 1}: kein Text`);
+    if (panel.text && panel.text.length > 190) {
+      warnung.push(`Sequenz "${id}" Panel ${pi + 1}: Text sehr lang (${panel.text.length} Zeichen), passt evtl. nicht in den Kasten`);
+    }
+    if (panel.choice) {
+      if (pi !== seq.panels.length - 1) {
+        warnung.push(`Sequenz "${id}": Entscheidung steht in Panel ${pi + 1} statt im letzten - alles danach wird nie gezeigt`);
+      }
+      if (!panel.choice.optionen || panel.choice.optionen.length < 2) {
+        fehler.push(`Sequenz "${id}": Entscheidung braucht mindestens zwei Optionen`);
+      }
+      (panel.choice.optionen || []).forEach(o => {
+        if (!o.label) fehler.push(`Sequenz "${id}": Option ohne Beschriftung`);
+      });
+    }
+  });
+});
+
+console.log(`${LEVELS.length} Level und ${Object.keys(STORY).length} Sequenzen geprueft.\n`);
 warnung.forEach(w => console.log('  Hinweis: ' + w));
 if (fehler.length === 0) {
   console.log('Keine Fehler gefunden.');

@@ -45,8 +45,10 @@ js/
   config.js             ALLE Tuning-Werte: Tempo, Sprunghoehe, Schaden, Etagen
   data/enemyTypes.js    die zehn Gegnertypen (Werte + Farben)
   data/levels.js        die Level: Etagen, Leitern, Optik, Gegner, Portale
+  data/story.js         Zwischensequenzen: Panels, Texte, Entscheidungen
+  gfx/PanelArt.js       Bildmotive der Sequenzen (in Ebenen aufgebaut)
   gfx/textures.js       Sprites als Pixel-Maps (ein Zeichen = ein Pixel)
-  scenes/               Boot, Title, Game, UI
+  scenes/               Boot, Title, Cutscene, Game, UI
   entities/             Player, Enemy, Bullet, Portal
 tools/check_levels.js   prueft die Leveldaten (node tools/check_levels.js)
 _ref/                   die urspruenglichen Entwuerfe aus dem Gemini-Chat
@@ -95,6 +97,22 @@ Schriftzug mit - was es nicht angibt, faellt auf die Standardwerte in
 Danach `node tools/check_levels.js` laufen lassen: das prueft Gegner auf
 nicht existierenden Etagen, Portale ins Leere, Leitern ohne Anschluss und
 Figuren, die durchs Dach ragen.
+
+**Eine Zwischensequenz.** In `js/data/story.js` eine Sequenz aus Panels
+anlegen (Motiv + Text, das letzte Panel darf eine Entscheidung tragen) und im
+Portal per `story: 'name'` darauf verweisen. Ohne `story` wechselt das Portal
+direkt, wie vorher.
+
+Eine Entscheidung setzt **Flags**, die den Levelwechsel ueberdauern. Gegner in
+`levels.js` reagieren darauf: `skipIf: 'leise'` laesst sie verschwinden,
+`onlyIf: 'laut'` laesst sie nur dann erscheinen. Eine Option darf ausserdem
+per `goto` den Ankunftspunkt im Ziellevel verschieben - so wird aus einer
+Textentscheidung ein echter Unterschied im Spiel.
+
+Die Bildmotive stehen in `js/gfx/PanelArt.js`. Jedes Motiv liefert mehrere
+EBENEN, die nacheinander einblenden - das erzeugt den Comic-Aufbau. Ein Motiv
+laesst sich spaeter durch ein echtes PNG ersetzen, ohne dass die Sequenzlogik
+sich aendert.
 
 **Einen elften Gegner.** In `data/enemyTypes.js` einen Eintrag ergaenzen
 (Farbe, HP, Tempo, `behavior`) und in `data/levels.js` bei einem Level platzieren. Sprite und
