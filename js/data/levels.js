@@ -41,9 +41,10 @@ const LEVELS = [
     playerStart: { floor: 0, x: 28 },
     bossEndsGame: true,
 
-    // Der Lastenaufzug im dritten Stock - fuehrt in den Serverkeller.
+    // Der Lastenaufzug - steht im Erdgeschoss gleich neben dem Eingang,
+    // damit man zum Ausprobieren nicht erst durchs halbe Haus klettern muss.
     portals: [
-      { floor: 2, x: 150, to: 1, toFloor: 0, toX: 40, story: 'enter_datacenter' }
+      { floor: 0, x: 120, to: 1, toFloor: 0, toX: 40, story: 'enter_datacenter' }
     ],
 
     enemies: [
@@ -105,7 +106,7 @@ const LEVELS = [
 
     // Rueckweg ganz oben - man muss sich erst hochkaempfen.
     portals: [
-      { floor: 3, x: 250, to: 0, toFloor: 2, toX: 176, story: 'leave_datacenter' }
+      { floor: 3, x: 250, to: 0, toFloor: 0, toX: 190, story: 'leave_datacenter' }
     ],
 
     enemies: [

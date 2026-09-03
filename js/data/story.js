@@ -27,7 +27,7 @@ const STORY = {
     panels: [
       {
         art: 'elevator',
-        text: 'Der Lastenaufzug im dritten Stock steht offen. Kein Licht, ' +
+        text: 'Der Lastenaufzug neben dem Empfang steht offen. Kein Licht, ' +
               'kein Motor. Nur ein Summen, das nicht von Maschinen kommt.'
       },
       {
@@ -74,7 +74,7 @@ const STORY = {
       },
       {
         art: 'elevator',
-        text: 'Zurueck im dritten Stock. Oben warten noch vier Etagen - ' +
+        text: 'Zurueck im Erdgeschoss. Ueber dir warten fuenf Etagen - ' +
               'und der Direktor weiss jetzt, dass du hier bist.'
       }
     ]

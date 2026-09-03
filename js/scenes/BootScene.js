@@ -10,6 +10,7 @@ class BootScene extends Phaser.Scene {
 
   preload() {
     buildAllTextures(this);
+    Sfx.preload(this);
   }
 
   create() {

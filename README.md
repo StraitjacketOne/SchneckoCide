@@ -46,11 +46,15 @@ js/
   data/enemyTypes.js    die zehn Gegnertypen (Werte + Farben)
   data/levels.js        die Level: Etagen, Leitern, Optik, Gegner, Portale
   data/story.js         Zwischensequenzen: Panels, Texte, Entscheidungen
+  data/sounds.js        welcher Ton zu welchem Ereignis gehoert
+  data/audioData.js     ERZEUGT - eingebettete Toene (embed_audio.js)
   gfx/PanelArt.js       Bildmotive der Sequenzen (in Ebenen aufgebaut)
   gfx/textures.js       Sprites als Pixel-Maps (ein Zeichen = ein Pixel)
   scenes/               Boot, Title, Cutscene, Game, UI
   entities/             Player, Enemy, Bullet, Portal
-tools/check_levels.js   prueft die Leveldaten (node tools/check_levels.js)
+assets/audio/           Quell-MP3s (werden eingebettet, nicht nachgeladen)
+tools/check_levels.js   prueft Level, Sequenzen und Toene
+tools/embed_audio.js    bettet assets/audio/ in js/data/audioData.js ein
 _ref/                   die urspruenglichen Entwuerfe aus dem Gemini-Chat
 ```
 
@@ -113,6 +117,17 @@ Die Bildmotive stehen in `js/gfx/PanelArt.js`. Jedes Motiv liefert mehrere
 EBENEN, die nacheinander einblenden - das erzeugt den Comic-Aufbau. Ein Motiv
 laesst sich spaeter durch ein echtes PNG ersetzen, ohne dass die Sequenzlogik
 sich aendert.
+
+**Einen Ton.** MP3 nach `assets/audio/` legen, `node tools/embed_audio.js`
+laufen lassen, in `js/data/sounds.js` eintragen und an der passenden Stelle
+`Sfx.play(this, 'name')` aufrufen.
+
+Die Toene werden als Data-URI in `js/data/audioData.js` eingebettet statt
+nachgeladen. Grund: bei einem Doppelklick auf `index.html` (file://) blockiert
+der Browser das Nachladen von Dateien - eine nachgeladene MP3 waere einfach
+stumm. Eingebettet funktioniert der Ton auch ohne Webserver. Der Preis ist ein
+Drittel mehr Datenmenge; fuer kurze Effekte kein Thema, fuer lange Musik waere
+echtes Nachladen (und damit ein Server) besser.
 
 **Einen elften Gegner.** In `data/enemyTypes.js` einen Eintrag ergaenzen
 (Farbe, HP, Tempo, `behavior`) und in `data/levels.js` bei einem Level platzieren. Sprite und

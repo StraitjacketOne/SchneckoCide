@@ -22,7 +22,10 @@ new Function('g', lade('js/data/enemyTypes.js') + '\n;g.ENEMY_TYPES=ENEMY_TYPES;
 new Function('g', lade('js/data/story.js') + '\n;g.STORY=STORY;')(ctx);
 new Function('g', lade('js/gfx/PanelArt.js') + '\n;g.PanelArt=PanelArt;')(ctx);
 
-const { CFG, LEVELS, ENEMY_TYPES, STORY, PanelArt, innerLeft, innerRight } = ctx;
+new Function('g', lade('js/data/audioData.js') + '\n;g.AUDIO_DATA=AUDIO_DATA;')(ctx);
+new Function('g', lade('js/data/sounds.js') + '\n;g.SOUNDS=SOUNDS;')(ctx);
+
+const { CFG, LEVELS, ENEMY_TYPES, STORY, PanelArt, AUDIO_DATA, SOUNDS, innerLeft, innerRight } = ctx;
 
 const fehler = [];
 const warnung = [];
@@ -125,7 +128,18 @@ Object.keys(STORY).forEach(id => {
   });
 });
 
-console.log(`${LEVELS.length} Level und ${Object.keys(STORY).length} Sequenzen geprueft.\n`);
+// --- Toene
+Object.keys(SOUNDS).forEach(name => {
+  const def = SOUNDS[name];
+  if (!AUDIO_DATA[def.key]) {
+    fehler.push(`Ton "${name}": kein Audio unter dem Schluessel "${def.key}" - fehlt in assets/audio/ oder embed_audio.js wurde nicht neu ausgefuehrt`);
+  }
+  if (def.volume !== undefined && (def.volume < 0 || def.volume > 1)) {
+    fehler.push(`Ton "${name}": Lautstaerke ${def.volume} liegt ausserhalb von 0..1`);
+  }
+});
+
+console.log(`${LEVELS.length} Level, ${Object.keys(STORY).length} Sequenzen und ${Object.keys(SOUNDS).length} Toene geprueft.\n`);
 warnung.forEach(w => console.log('  Hinweis: ' + w));
 if (fehler.length === 0) {
   console.log('Keine Fehler gefunden.');

@@ -302,6 +302,7 @@ class GameScene extends Phaser.Scene {
     const d = portal.def;
 
     this.player.setVelocity(0, 0);
+    Sfx.play(this, 'portal');
     this.cameras.main.flash(120, 160, 90, 255);
     this.cameras.main.fadeOut(320, 0, 0, 0);
 
